@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIRI - Live Scenario</title>
+    <link rel="stylesheet" href="stylesLive.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf@5/turf.min.js"></script>
+    <script src="https://unpkg.com/leaflet-pip@1.1.0/leaflet-pip.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+</head>
+<body>
+    <div id="loginModal">
+        <div id="loginModalContent">
+            <h2>Welcome to <span style="font-size:1.5em;font-weight:bold;">GIRI</span></h2>
+            <h3>Please enter your username and password</h3>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+        </div>
+    </div>
+    <div>
+        <h1></h1>
+    </div>
+    <div>
+        <div id="controls">
+            <div>
+                <h2>Select System Class</h2>
+                <select id="system-type-select">
+                    <option value="">Select System Class</option>
+                </select>
+            </div>
+            <div>
+                <h2>Select System</h2>
+                <select id="system-name-select">
+                    <option value="">Select System</option>
+                </select>
+            </div>
+        </div>
+        <div>
+            <h2>Select Emitters and Count</h2>
+            <div id="emitter-name-container"></div>
+        </div>
+        <div>
+            <h3>Ellipse Tolerance - 
+            <label>Min: <input type="number" id="min-tolerance" step="0.01"></label>
+            <label>Max: <input type="number" id="max-tolerance" step="0.01"></label>
+        </div>
+        <div>
+            <h3>Message Delay (seconds)
+            <label><input type="number" id="message-delay" step="1" min="1" placeholder="Enter delay"></label>
+        </div>
+        <div>
+            <button id="play-data" class="large-green-button">Play Data</button>
+            <button id="pause-data" class="large-green-button">Pause Data</button>
+            <button id="stop-data" class="large-green-button">Stop Data</button>
+        </div>
+        <div id="map-placeholder">Click to draw AOI</div>
+        <div id="map"></div>
+        <div id="working-csv-container">
+            <div id="working-csv-header">
+                <h2>Emitter List Preview</h2>
+                <div>
+                <button id="update-list" class="purple">Update List</button>
+                <button id="cluster-selected" class="purple">Cluster Selected</button>
+                <button id="breadcrumb" class="purple">Breadcrumb</button>
+                <button id="clear-all" class="dark-red">Clear All</button>
+                <button id="delete-selected" class="dark-red">Delete Selected</button>
+                <button id="generate-data" class="blue-green">Generate Data</button>
+                </div>
+            </div>
+            <div id="working-csv-preview"></div>
+        </div>
+    </div>
+    <script src="dataLive.js"></script>
+    <script src="functionsLive.js"></script>
+</body>
+</html>
