@@ -11,6 +11,7 @@
     <script src="https://unpkg.com/leaflet-pip@1.1.0/leaflet-pip.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/mgrs"></script>
 </head>
 <body>
     <div id="loginModal">
@@ -26,40 +27,42 @@
         <h1></h1>
     </div>
     <div>
-        <div id="controls">
-            <div>
-                <h2>Select System Class</h2>
-                <select id="system-type-select">
-                    <option value="">Select System Class</option>
-                </select>
-            </div>
-            <div>
-                <h2>Select System</h2>
-                <select id="system-name-select">
-                    <option value="">Select System</option>
-                </select>
-            </div>
-        </div>
-        <div>
-            <h2>Select Emitters and Count</h2>
-            <div id="emitter-name-container"></div>
-        </div>
-        <div>
-            <h3>Ellipse Tolerance - 
-            <label>Min: <input type="number" id="min-tolerance" step="0.01"></label>
-            <label>Max: <input type="number" id="max-tolerance" step="0.01"></label>
-        </div>
-        <div>
-            <h3>Message Delay (seconds)
-            <label><input type="number" id="message-delay" step="1" min="1" placeholder="Enter delay"></label>
-        </div>
-        <div>
-            <button id="play-data" class="large-green-button">Play Data</button>
-            <button id="pause-data" class="large-green-button">Pause Data</button>
-            <button id="stop-data" class="large-green-button">Stop Data</button>
-        </div>
-        <div id="map-placeholder">Click to draw AOI</div>
-        <div id="map"></div>
+		<div id="controls">
+			<div>
+				<h2>Select System Class</h2>
+				<select id="system-type-select">
+					<option value="">Select System Class</option>
+				</select>
+			</div>
+			<div>
+				<h2>Select System</h2>
+				<select id="system-name-select">
+					<option value="">Select System</option>
+				</select>
+			</div>
+		</div>
+		<div>
+			<h2>Select Emitters and Count</h2>
+			<div id="emitter-name-container"></div>
+		</div>
+		<div>
+			<h3>Ellipse Tolerance - 
+			<label>Min: <input type="number" id="min-tolerance" step="0.01"></label>
+			<label>Max: <input type="number" id="max-tolerance" step="0.01"></label>
+		</div>
+		<div>
+			<h3>Message Delay (seconds)
+			<label><input type="number" id="message-delay" step="1" min="1" placeholder="Enter delay"></label>
+		</div>
+		<!-- Button Container -->
+		<div id="button-container">
+			<button id="play-data" class="play-button">Play Data</button>
+			<button id="pause-data" class="pause-button">Pause Data</button>
+			<button id="stop-data" class="stop-button">Stop Data</button>
+		</div>
+		<div id="map-placeholder">Click to draw AOI</div>
+		<div id="map"></div>
+
         <div id="working-csv-container">
             <div id="working-csv-header">
                 <h2>Emitter List Preview</h2>
