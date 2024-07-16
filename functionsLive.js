@@ -8,7 +8,7 @@ let emitterMovement = {}; // Store emitter movement data
 let playIntervals = {}; // Store intervals for each emitter
 let emitterStates = {}; // Store the state (Active/Silence) of each emitter
 
-const activeIconPath = 'D:\\The Sauce\\ACE\\Program Files\\dataInject\\liveScenario\\pictures\\active.png';
+const activeIconPath = './pictures/active.png';
 const silenceIconPath = './pictures/icon2.png'; // Current default icon
 
 function initializeMap() {
