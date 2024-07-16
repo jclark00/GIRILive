@@ -99,7 +99,15 @@ button.purple {
 }
 
 input[type="number"], input[type="text"] {
-    width: 60px;
+    width: 100%; 
+    box-sizing: border-box; 
+}
+
+#button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
 }
 
 input.location-input {
@@ -164,12 +172,14 @@ input.location-input {
 table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 }
 
 th, td {
     border: 1px solid #555;
     padding: 8px;
     text-align: left;
+    overflow: hidden;
 }
 
 th {
@@ -338,4 +348,59 @@ label {
     color: #fff;
     font-size: 1.2em;
     margin-top: 10px;
+}
+
+#button-container {
+    display: flex; /* Use flexbox for horizontal alignment */
+    justify-content: center; /* Center the buttons */
+    align-items: center; /* Vertically center the buttons */
+    margin-bottom: 20px; /* Add some space below the button container */
+}
+
+/* General Button Styles */
+.large-green-button {
+    margin: 0 10px; /* Add horizontal margin between buttons */
+    display: block; /* Ensure the buttons are displayed as block elements */
+}
+
+/* Specific Button Styles */
+.pause-button {
+    background-color: #DAA520; /* Burnt yellow color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px 20px;
+    margin: 0 10px; /* Add horizontal margin between buttons */
+}
+
+.pause-button:hover {
+    background-color: #B8860B; /* Darker shade for hover effect */
+}
+
+.play-button {
+    background-color: #0cf53b;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px 20px;
+    margin: 0 10px; /* Add horizontal margin between buttons */
+}
+
+.play-button:hover {
+    background-color: #0da12a; 
+}
+
+.stop-button {
+    background-color: #FF0000; /* Red color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 10px 20px;
+    margin: 0 10px; /* Add horizontal margin between buttons */
 }
