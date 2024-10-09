@@ -1,15 +1,15 @@
-let workingCSV = []; // Global workingCSV variable
-let mapMarkers = {}; // Store map markers by their index
-let map; // Global map variable
-let userPolygon = null; // Store the user-drawn polygon
-let addToListButton; // Declare addToListButton in the global scope
-let breadcrumbSettings = {}; // Store breadcrumb settings for each emitter
-let emitterMovement = {}; // Store emitter movement data
-let playIntervals = {}; // Store intervals for each emitter
-let emitterStates = {}; // Store the state (Active/Silence) of each emitter
+let workingCSV = []; // workingCSV variable
+let mapMarkers = {}; //  map markers 
+let map; //  map variable
+let userPolygon = null; //  user-drawn polygon
+let addToListButton; 
+let breadcrumbSettings = {}; // breadcrumb settings for each emitter
+let emitterMovement = {}; // emitter movement data
+let playIntervals = {}; // intervals for each emitter
+let emitterStates = {}; // the state (Active/Silence) of each emitter
 
 const activeIconPath = './pictures/active.png';
-const silenceIconPath = './pictures/icon2.png'; // Current default icon
+const silenceIconPath = './pictures/icon2.png'; 
 
 function initializeMap() {
     if (!map) {
