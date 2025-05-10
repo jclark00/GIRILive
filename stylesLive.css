@@ -404,3 +404,38 @@ label {
     padding: 10px 20px;
     margin: 0 10px; /* Add horizontal margin between buttons */
 }
+/* New Layout Styles */
+#top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(13, 13, 13, 0.95);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    z-index: 999;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.7);
+}
+
+#left-sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 300px;
+    height: calc(100% - 60px);
+    background-color: rgba(13, 13, 13, 0.95);
+    padding: 10px;
+    overflow-y: auto;
+    z-index: 998;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.7);
+}
+
+#map {
+    position: absolute;
+    top: 60px;
+    left: 300px;
+    width: calc(100% - 300px);
+    height: calc(100% - 60px);
+    margin: 0;
+}
