@@ -1,3 +1,4 @@
+
 const systemTypes = ['SAM', 'TBM', 'EW', 'EMW', 'MARITIME'];
 const systemNames = {
     'SAM': ['RBG-6', 'RBG-15', 'BG-5', 'RBG-12'],
