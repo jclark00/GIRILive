@@ -12,11 +12,15 @@ const activeIconPath = './pictures/active.png';
 const silenceIconPath = './pictures/icon2.png'; 
 
 function initializeMap() {
+    console.log('initializeMap started');
     if (!map) {
-        map = L.map('map').setView([51.505, -0.09], 2);
+        map = L.map('map').setView([15.0, 100.0], 4);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
         }).addTo(map);
+        console.log('Tile layer added');
+        console.log('Map size:', map.getSize());
+        setTimeout(() => { map.invalidateSize(); console.log('Map size invalidated'); }, 500);
 
         // Right-click to copy coordinates
         map.on("contextmenu", function(e) {
@@ -47,7 +51,7 @@ function initializeMap() {
             }
         });
         map.addControl(drawControl);
-
+		
         // Event handler for when a polygon is created
         map.on(L.Draw.Event.CREATED, function(event) {
             const layer = event.layer;
@@ -63,11 +67,12 @@ function initializeMap() {
             addToListButton.disabled = false;
         });
 
-        plotEmitters();
-    }
+		plotEmitters();
+	};
 }
 
 function plotEmitters() {
+    console.log('Plot emitters called');
     clearMapMarkers();
     workingCSV.forEach((row, index) => {
         const [lat, lon] = row.location.split(',').map(Number); // Ensure correct parsing
@@ -81,7 +86,10 @@ function plotEmitters() {
         });
 
         const marker = L.marker([lat, lon], { draggable: true, icon: customIcon }).addTo(map);
-        marker.bindPopup(getEmitterPopupContent(row, index)).openPopup();
+
+		
+		const popupContent = window.createMarkerPopupContent(index);
+        marker.bindPopup(popupContent);
 
         marker.on("dragend", function(e) {
             const latlng = e.target.getLatLng();
@@ -93,6 +101,40 @@ function plotEmitters() {
         mapMarkers[index] = marker;
     });
 }
+
+window.createMarkerPopupContent = function(index) {
+    const popupContainer = document.createElement('div');
+    const title = document.createElement('strong');
+    title.textContent = workingCSV[index]?.emitterName || 'Emitter';
+
+    const silenceButton = document.createElement('button');
+    silenceButton.textContent = 'Silence';
+    silenceButton.addEventListener('click', () => {
+        toggleEmitterState(workingCSV[index]?.uniqueID, index);
+    });
+
+    const selectButton = document.createElement('button');
+    selectButton.textContent = 'Select';
+    selectButton.style.marginLeft = '5px';
+    selectButton.addEventListener('click', () => {
+        const tableRows = document.querySelectorAll('#working-csv-preview tr');
+        tableRows.forEach(row => row.classList.remove('selected'));
+        const targetRow = tableRows[parseInt(index) + 1];
+        if (targetRow) {
+            targetRow.classList.add('selected');
+            targetRow.style.backgroundColor = 'lightcoral';
+            targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    });
+
+    popupContainer.appendChild(title);
+    popupContainer.appendChild(document.createElement('br'));
+    popupContainer.appendChild(silenceButton);
+    popupContainer.appendChild(selectButton);
+
+    return popupContainer;
+};
+
 
 function getEmitterPopupContent(row, index) {
     const isActive = emitterStates[row.uniqueID] !== 'Silence';
@@ -373,7 +415,12 @@ function generateUniqueID() {
 
 function convertLocationToMGRS(location) {
     const [lat, lon] = location.split(',').map(Number);
-    return mgrs.forward([lon, lat]); // Note the order of coordinates for MGRS conversion
+    if (typeof mgrs !== 'undefined' && typeof mgrs.forward === 'function') {
+        return mgrs.forward([lon, lat]);
+    } else {
+        console.warn('MGRS library is not loaded. Returning raw coordinates.');
+        return location;
+    }
 }
 
 function updateLocationBox(newLocation, index) {
@@ -393,220 +440,440 @@ function updateMapMarkerPosition(uniqueID, newLocationCoords) {
     }
 }
 
+
+
+
 document.addEventListener('DOMContentLoaded', function() {
-    const systemTypeSelect = document.getElementById('system-type-select');
-    const systemNameSelect = document.getElementById('system-name-select');
-    const emitterNameContainer = document.getElementById('emitter-name-container');
-    const workingCSVPreview = document.getElementById('working-csv-preview');
-    addToListButton = document.createElement('button'); // Initialize the button here
-    addToListButton.innerText = 'Add to List';
-    addToListButton.className = 'blue-green';
-    addToListButton.disabled = true; // Initially disable the button
+    const mapElement = document.getElementById('map');
+    if (mapElement) {
+        console.log('#map element is present in the DOM.');
+        console.log('Map clientWidth:', mapElement.clientWidth);
+        console.log('Map clientHeight:', mapElement.clientHeight);
 
-    function createOption(value) {
-        const option = document.createElement('option');
-        option.value = value;
-        option.text = value;
-        return option;
+        let parent = mapElement.parentElement;
+        let level = 0;
+        while (parent) {
+            console.log('Parent level', level, ' - tag:', parent.tagName, ' - clientWidth:', parent.clientWidth, ' - clientHeight:', parent.clientHeight);
+            parent = parent.parentElement;
+            level++;
+        }
+    } else {
+        console.error('#map element is NOT present in the DOM.');
     }
 
-    // Populate the system type dropdown
-    if (typeof systemTypes !== 'undefined' && Array.isArray(systemTypes)) {
-        systemTypes.forEach(systemType => {
-            systemTypeSelect.appendChild(createOption(systemType));
-        });
-    }
+    initializeMap();
+});
 
-    systemTypeSelect.addEventListener('change', () => {
-        const systemType = systemTypeSelect.value;
-        const systemNameSelect = document.getElementById('system-name-select');
-        const emitterNameContainer = document.getElementById('emitter-name-container');
-        systemNameSelect.innerHTML = '<option value="">Select System</option>';
-        emitterNameContainer.innerHTML = '';
+document.addEventListener('DOMContentLoaded', function() {
+    const slideOutPanel = document.getElementById('slide-out-panel');
+    const equipmentIcon = document.getElementById('equipment-icon');
+    const iconBar = document.getElementById('icon-bar');
+    const expandToggle = document.getElementById('expand-toggle');
 
-        if (systemType && typeof systemNames !== 'undefined' && systemNames[systemType]) {
-            const names = systemNames[systemType];
-            names.forEach(name => {
-                systemNameSelect.appendChild(createOption(name));
-            });
-        }
+    let panelVisible = false;
+    let expanded = false;
+
+    equipmentIcon.addEventListener('click', () => {
+        panelVisible = !panelVisible;
+        slideOutPanel.style.display = panelVisible ? 'block' : 'none';
+        slideOutPanel.style.left = expanded ? '200px' : '50px';
     });
 
-    systemNameSelect.addEventListener('change', () => {
-        const systemType = systemTypeSelect.value;
-        const systemName = systemNameSelect.value;
-        emitterNameContainer.innerHTML = '';
-
-        if (systemName) {
-            const filteredEmitters = emitters.filter(row => row.systemType === systemType && row.systemName === systemName);
-            filteredEmitters.forEach(emitter => {
-                const div = document.createElement('div');
-                div.innerHTML = `<label>${emitter.emitterName} <input type="number" min="0" placeholder="Count" data-emitter-name="${emitter.emitterName}" data-elnot="${emitter.elnot}" data-freq="${emitter.freq}"></label>`;
-                emitterNameContainer.appendChild(div);
-            });
-
-            emitterNameContainer.appendChild(addToListButton); // Append button here to ensure it is visible
-
-			addToListButton.addEventListener('click', () => {
-				const countInputs = document.querySelectorAll('[data-emitter-name]');
-				if (userPolygon) {
-					countInputs.forEach(input => {
-						const count = parseInt(input.value);
-						if (count > 0) {
-							for (let i = 0; i < count; i++) {
-								const emitterName = input.getAttribute('data-emitter-name');
-								const emitterData = filteredEmitters.find(row => row.emitterName === emitterName);
-								const location = generateRandomLatLonInPolygon(userPolygon);
-
-								// Generate random values for Maj, Min, and Ori
-								const minTolerance = parseFloat(document.getElementById('min-tolerance').value);
-								const maxTolerance = parseFloat(document.getElementById('max-tolerance').value);
-								const maj = (Math.random() * (maxTolerance - minTolerance) + minTolerance).toFixed(3);
-								const min = (Math.random() * 0.75 * maj).toFixed(3);
-								const ori = Math.floor(Math.random() * 180) + 1;
-
-								const newEntry = {
-									systemType: emitterData.systemType,
-									systemName: emitterData.systemName,
-									emitterName: emitterName,
-									elnot: emitterData.elnot,
-									freq: emitterData.freq,
-									maj: maj,
-									min: min,
-									ori: ori,
-									mgrs: convertLocationToMGRS(location), // Convert location to MGRS
-									location: location, // Generate random location within polygon
-									uniqueID: generateUniqueID(), // Generate and add unique ID
-									breadcrumb: "No" // Initialize breadcrumb to "No"
-								};
-								workingCSV.push(newEntry);
-								emitterStates[newEntry.uniqueID] = 'Active'; // Initialize state as Active
-								startBursting(newEntry); // Start bursting messages for the new emitter
-							}
-						}
-					});
-					updateCSVPreview();
-					plotEmitters();
-				}
-			});
-
-
-        }
-    });
-
-    document.getElementById('play-data').addEventListener('click', handlePlayData);
-    document.getElementById('pause-data').addEventListener('click', handlePauseData);
-    document.getElementById('stop-data').addEventListener('click', handleStopData);
-    document.getElementById('update-list').addEventListener('click', () => {
-        handlePauseData(); // Stop all current intervals
-        plotEmitters(); // Re-plot emitters
-        handlePlayData(); // Restart message bursts with updated list
-    });
-
-    document.getElementById('generate-data').addEventListener('click', () => {
-        const minTolerance = parseFloat(document.getElementById('min-tolerance').value);
-        const maxTolerance = parseFloat(document.getElementById('max-tolerance').value);
-
-        const headers = ['class', 'type', 'system', 'elnt', 'freq', 'min', 'maj', 'orient', 'location', 'mgrs', 'uniqueID'];
-        const finalCSV = workingCSV.map(row => {
-            const semiMaj = (Math.random() * (maxTolerance - minTolerance) + minTolerance).toFixed(2);
-            const semiMin = (Math.random() * 0.75 * semiMaj).toFixed(2);
-            const orientation = Math.floor(Math.random() * 180) + 1;
-
-            return [
-                row.systemType, row.systemName, row.emitterName, row.elnot, row.freq,
-                semiMaj, semiMin, orientation, row.location, row.mgrs, row.uniqueID
-            ].join(',');
-        });
-
-        const csvContent = `${headers.join(',')}\n${finalCSV.join('\n')}`;
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'generated_data.csv';
-        document.body.appendChild(a);
-        a.click();
-        URL.revokeObjectURL(url);
-    });
-
-    document.getElementById('cluster-selected').addEventListener('click', () => {
-        const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
-        const indicesToCluster = Array.from(selectedRows).map(row => Array.from(row.parentElement.children).indexOf(row) - 1);
-        const newEntries = [];
-
-        indicesToCluster.forEach(index => {
-            const row = workingCSV[index];
-            const [lat, lon] = row.location.split(',').map(Number);
-            const numCopies = Math.floor(Math.random() * 4) + 2; // Random number between 2 and 5
-
-            for (let i = 0; i < numCopies; i++) {
-                const newLocation = generateRandomLatLonNearby(lat, lon);
-                const newEntry = { ...row, location: newLocation, mgrs: convertLocationToMGRS(newLocation), uniqueID: row.uniqueID }; // Copy unique ID and convert location to MGRS
-                newEntries.push(newEntry);
-            }
-        });
-
-        workingCSV = workingCSV.concat(newEntries);
-        updateCSVPreview();
-        plotEmitters();
-    });
-
-    document.getElementById('delete-selected').addEventListener('click', deleteSelectedEmitters);
-
-    document.getElementById('clear-all').addEventListener('click', () => {
-        handlePauseData();
-        workingCSV.forEach(row => {
-            clearInterval(playIntervals[row.uniqueID]);
-            delete playIntervals[row.uniqueID];
-        });
-        workingCSV = [];
-        clearMapMarkers();
-        updateCSVPreview();
-    });
-
-	document.getElementById('breadcrumb').addEventListener('click', () => {
-		const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
-		if (selectedRows.length === 0) {
-			alert('Please select at least one emitter to apply breadcrumb settings.');
-			return;
-		}
-
-		const heading = parseFloat(prompt('Enter heading (1-360 degrees):'));
-		const speed = parseFloat(prompt('Enter speed (in miles per hour):'));
-
-		if (isNaN(heading) || isNaN(speed) || heading < 1 || heading > 360 || speed <= 0) {
-			alert('Invalid heading or speed values. Please enter valid numbers.');
-			return;
-		}
-
-		selectedRows.forEach(row => {
-			const index = Array.from(row.parentElement.children).indexOf(row) - 1;
-			const uniqueID = workingCSV[index].uniqueID;
-			breadcrumbSettings[uniqueID] = {
-				heading: heading,
-				speed: speed,
-				startTime: Date.now(),
-				initialLocation: workingCSV[index].location
-			};
-			// Update breadcrumb column to "Yes"
-			workingCSV[index].breadcrumb = "Yes";
-		});
-
-		// Update the CSV preview to reflect the changes
-		updateCSVPreview();
-	});
-
-
-    // Initialize the map when the placeholder is clicked
-    const mapPlaceholder = document.getElementById('map-placeholder');
-    const mapDiv = document.getElementById('map');
-
-    mapPlaceholder.addEventListener('click', function() {
-        mapPlaceholder.style.display = 'none';
-        mapDiv.style.display = 'block';
-        initializeMap();
+    expandToggle.addEventListener('click', () => {
+        expanded = !expanded;
+        iconBar.style.width = expanded ? '200px' : '50px';
+        deleteButtonLabel.style.display = expanded ? 'inline' : 'none';
+        expandToggle.textContent = expanded ? 'â®œ' : 'â®ž';
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const slideOutPanel = document.getElementById('slide-out-panel');
+    const equipmentIcon = document.getElementById('equipment-icon');
+    const iconBar = document.getElementById('icon-bar');
+    const expandToggle = document.getElementById('expand-toggle');
+
+    let panelVisible = false;
+    let expanded = false;
+
+    equipmentIcon.addEventListener('click', () => {
+        panelVisible = !panelVisible;
+        slideOutPanel.style.display = panelVisible ? 'block' : 'none';
+        slideOutPanel.style.left = expanded ? '200px' : '50px';
+    });
+
+    expandToggle.addEventListener('click', () => {
+        expanded = !expanded;
+        iconBar.style.width = expanded ? '200px' : '50px';
+        const iconLabels = document.querySelectorAll('.icon-label');
+        iconLabels.forEach(label => label.style.display = expanded ? 'inline' : 'none');
+        expandToggle.textContent = expanded ? 'â®œ' : 'â®ž';
+    });
+});
+// Existing functionsLive.js content
+
+// Original content remains here...
+
+/* START OF UPDATE */
+
+// Add placement logic to the DOMContentLoaded in functionsLive.js
+document.addEventListener('DOMContentLoaded', function() {
+    const clickToAddCheckbox = document.getElementById('click-to-add-checkbox');
+    if (clickToAddCheckbox) {
+        let activeClickHandler = null;
+
+        clickToAddCheckbox.addEventListener('change', function() {
+            if (clickToAddCheckbox.checked) {
+                if (!activeClickHandler) {
+                    activeClickHandler = function(e) {
+                        const latlng = e.latlng;
+                        placeEmitterAtLocation(latlng);
+                    };
+                    map.on('click', activeClickHandler);
+                }
+            } else {
+                if (activeClickHandler) {
+                    map.off('click', activeClickHandler);
+                    activeClickHandler = null;
+                }
+            }
+        });
+    }
+});
+
+    // Add to AOI Handler
+   // addToAoiButton.addEventListener('click', function() {
+ //       const numberToAdd = parseInt(document.getElementById('number-to-add').value) || 1;
+   //     if (!userPolygon) {
+     //       alert('Please draw an AOI first.');
+       //     return;
+        //}
+        //for (let i = 0; i < numberToAdd; i++) {
+         //   const latlngStr = generateRandomLatLonInPolygon(userPolygon);
+          //  const [lat, lon] = latlngStr.split(',').map(Number);
+           // placeEmitterAtLocation({ lat, lng: lon });
+   //     }
+   // });
+//);
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Move left-side menu to right-side without duplicating
+    const leftIconBar = document.getElementById('icon-bar');
+    const leftSlideOutPanel = document.getElementById('slide-out-panel');
+
+    if (leftIconBar && leftSlideOutPanel) {
+        // Move icon bar
+        leftIconBar.style.left = 'auto';
+        leftIconBar.style.right = '0';
+
+        // Move slide-out panel
+        leftSlideOutPanel.style.left = 'auto';
+        leftSlideOutPanel.style.right = '50px';
+
+        // Ensure the slide-out opens to the left from the right edge
+        leftSlideOutPanel.style.transformOrigin = 'right';
+
+        const equipmentIcon = leftIconBar.querySelector('#equipment-icon');
+        const expandToggle = leftIconBar.querySelector('#expand-toggle');
+
+        let panelVisible = false;
+        let expanded = false;
+
+        equipmentIcon.addEventListener('click', () => {
+            panelVisible = !panelVisible;
+            leftSlideOutPanel.style.left = 'auto';
+            leftSlideOutPanel.style.right = '50px';
+            leftSlideOutPanel.style.display = panelVisible ? 'block' : 'none';
+        });
+
+        expandToggle.addEventListener('click', () => {
+            expanded = !expanded;
+            leftIconBar.style.width = expanded ? '200px' : '50px';
+            const iconLabels = leftIconBar.querySelectorAll('.icon-label');
+            iconLabels.forEach(label => label.style.display = expanded ? 'inline' : 'none');
+            expandToggle.textContent = expanded ? '⮜' : '⮞';
+        });
+    }
+
+    // Click to Add System Functionality
+    const clickToAddCheckbox = document.getElementById('click-to-add-checkbox');
+    if (clickToAddCheckbox) {
+        let activeClickHandler = null;
+
+        clickToAddCheckbox.addEventListener('change', function() {
+            if (clickToAddCheckbox.checked) {
+                if (!activeClickHandler) {
+                    activeClickHandler = function(e) {
+                        const latlng = e.latlng;
+                        //L.marker(latlng).addTo(map);
+                    };
+                    map.on('click', activeClickHandler);
+                }
+            } else {
+                if (activeClickHandler) {
+                    map.off('click', activeClickHandler);
+                    activeClickHandler = null;
+                }
+            }
+        });
+    }
+    const iconBar = document.getElementById('icon-bar');
+    const equipmentIcon = document.getElementById('equipment-icon');
+
+    const deleteButtonWrapper = document.createElement('div');
+    deleteButtonWrapper.id = 'delete-equipment-wrapper';
+    deleteButtonWrapper.style.marginTop = '10px';
+    deleteButtonWrapper.style.backgroundColor = '#000';
+    deleteButtonWrapper.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
+    deleteButtonWrapper.style.width = '40px';
+    deleteButtonWrapper.style.height = '40px';
+    deleteButtonWrapper.style.display = 'flex';
+    deleteButtonWrapper.style.alignItems = 'center';
+    deleteButtonWrapper.style.justifyContent = 'center';
+    deleteButtonWrapper.style.cursor = 'pointer';
+    deleteButtonWrapper.style.transition = 'width 0.3s ease';
+
+    const deleteButtonIcon = document.createElement('span');
+    deleteButtonIcon.innerHTML = '🗑️';
+
+    const deleteButtonLabel = document.createElement('span');
+    deleteButtonLabel.textContent = 'Delete Equipment';
+    deleteButtonLabel.style.marginLeft = '10px';
+    deleteButtonLabel.style.display = 'none';
+
+    deleteButtonWrapper.appendChild(deleteButtonIcon);
+    deleteButtonWrapper.appendChild(deleteButtonLabel);
+    iconBar.insertBefore(deleteButtonWrapper, equipmentIcon.nextSibling);
+
+    const expandToggle = document.getElementById('expand-toggle');
+    expandToggle.style.position = 'fixed';
+    expandToggle.style.bottom = '50px';
+    let expanded = false;
+
+    expandToggle.addEventListener('click', () => {
+        expanded = !expanded;
+        iconBar.style.width = expanded ? '200px' : '50px';
+        deleteButtonWrapper.style.width = expanded ? '200px' : '40px';
+        deleteButtonLabel.style.display = expanded ? 'inline' : 'none';
+        expandToggle.textContent = expanded ? '⮜' : '⮞';
+    });
+
+    deleteButtonWrapper.addEventListener('click', function() {
+        const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
+        const indicesToRemove = Array.from(selectedRows).map(row => Array.from(row.parentElement.children).indexOf(row) - 1);
+
+        indicesToRemove.forEach(index => {
+            const row = workingCSV[index];
+            if (mapMarkers[index]) {
+                map.removeLayer(mapMarkers[index]);
+                delete mapMarkers[index];
+            }
+        });
+
+        workingCSV = workingCSV.filter((_, index) => !indicesToRemove.includes(index));
+		updateCSVPreview();
+    });
+
+    // Add map marker popup with Select button functionality
+    Object.entries(mapMarkers).forEach(([index, marker]) => {
+        const popupContent = document.createElement('div');
+        const title = document.createElement('strong');
+        title.textContent = workingCSV[index]?.emitterName || 'Emitter';
+
+        const silenceButton = document.createElement('button');
+        silenceButton.textContent = 'Silence';
+        silenceButton.addEventListener('click', () => {
+            toggleEmitterState(workingCSV[index]?.uniqueID, index);
+        });
+
+        const selectButton = document.createElement('button');
+        selectButton.textContent = 'Select';
+        selectButton.style.marginLeft = '5px';
+        selectButton.addEventListener('click', () => {
+            const tableRows = document.querySelectorAll('#working-csv-preview tr');
+            tableRows.forEach(row => row.classList.remove('selected'));
+            const targetRow = tableRows[parseInt(index) + 1];
+            if (targetRow) {
+                targetRow.classList.add('selected');
+                targetRow.style.backgroundColor = 'lightcoral';
+                targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
+        popupContent.appendChild(title);
+        popupContent.appendChild(document.createElement('br'));
+        popupContent.appendChild(silenceButton);
+        popupContent.appendChild(selectButton);
+
+        marker.bindPopup(popupContent);
+    });
+});
+
+
+
+
+
+// Utility function to place emitter
+function placeEmitterAtLocation(latlng) {
+    const systemType = document.getElementById('system-class-select').value;
+    const systemName = document.getElementById('system-select').value;
+
+    if (!systemType || !systemName) {
+        alert('Please select a system class and system first.');
+        return;
+    }
+
+    const emitterName = `${systemName}-${generateUniqueID()}`;
+    const elnot = generateUniqueID();
+    const freq = Math.floor(Math.random() * 10000).toString();
+    const location = `${latlng.lat.toFixed(6)},${latlng.lng.toFixed(6)}`;
+
+    const newEmitter = {
+        systemType,
+        systemName,
+        emitterName,
+        elnot,
+        freq,
+        maj: '1.000',
+        min: '0.500',
+        ori: '90.000',
+        location,
+        uniqueID: generateUniqueID(),
+        mgrs: convertLocationToMGRS(location)
+    };
+
+    workingCSV.push(newEmitter);
+    updateCSVPreview();
+    plotEmitters();
+	onSystemPlaced(emitterName, latlng.lat, latlng.lng, elnot, freq, systemType);
+}
+document.addEventListener('DOMContentLoaded', function() {
+    // Create top banner
+    const topBanner = document.createElement('div');
+    topBanner.id = 'top-banner';
+    topBanner.style.width = '100%';
+    topBanner.style.height = '50px';
+    topBanner.style.backgroundColor = '#222';
+    topBanner.style.color = '#fff';
+    topBanner.style.display = 'flex';
+    topBanner.style.justifyContent = 'space-between';
+    topBanner.style.alignItems = 'center';
+    topBanner.style.padding = '0 20px';
+    topBanner.style.position = 'fixed';
+    topBanner.style.top = '0';
+    topBanner.style.left = '0';
+    topBanner.style.right = '0';
+    topBanner.style.zIndex = '1002';
+
+    // Left side - logo and title
+    const logoTitleContainer = document.createElement('div');
+    logoTitleContainer.style.display = 'flex';
+    logoTitleContainer.style.alignItems = 'center';
+
+    const logo = document.createElement('img');
+    logo.src = './pictures/logo.png';
+    logo.alt = 'GIRI Logo';
+	logo.style.position = 'fixed';
+    logo.style.height = '50px';
+    logo.style.justifyContent = 'left';
+
+    const title = document.createElement('span');
+    title.textContent = 'GIRI Training Tool';
+    title.style.fontSize = '18px';
+    title.style.fontWeight = 'bold';
+	title.style.marginLeft = '200px';
+
+    logoTitleContainer.appendChild(logo);
+    logoTitleContainer.appendChild(title);
+
+    // Center - scenario controls
+    const scenarioControls = document.createElement('div');
+    scenarioControls.id = 'scenario-controls';
+    scenarioControls.style.display = 'flex';
+    scenarioControls.style.justifyContent = 'center';
+    scenarioControls.style.alignItems = 'center';
+    scenarioControls.style.gap = '10px';
+    
+    // Play Button
+    const playButton = document.createElement('button');
+    playButton.textContent = 'Play';
+    playButton.onclick = handlePlayData;
+    
+    // Pause Button
+    const pauseButton = document.createElement('button');
+    pauseButton.textContent = 'Pause';
+    pauseButton.onclick = handlePauseData;
+    
+    // Stop Button
+    const stopButton = document.createElement('button');
+    stopButton.textContent = 'Stop';
+    stopButton.onclick = handleStopData;
+    
+    scenarioControls.appendChild(playButton);
+    scenarioControls.appendChild(pauseButton);
+    scenarioControls.appendChild(stopButton);
+
+    // Right side - dropdown menu
+    const menuContainer = document.createElement('div');
+    menuContainer.style.marginRight = '20px';
+
+    const menuButton = document.createElement('button');
+    menuButton.textContent = '☰ Menu';
+    menuButton.style.backgroundColor = '#444';
+    menuButton.style.color = '#fff';
+    menuButton.style.border = 'none';
+    menuButton.style.padding = '5px 10px';
+    menuButton.style.cursor = 'pointer';
+
+    const menuDropdown = document.createElement('div');
+    menuDropdown.style.display = 'none';
+    menuDropdown.style.position = 'absolute';
+    menuDropdown.style.right = '0';
+    menuDropdown.style.top = '35px';
+    menuDropdown.style.backgroundColor = '#fff';
+    menuDropdown.style.color = '#000';
+    menuDropdown.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
+    menuDropdown.style.borderRadius = '4px';
+    menuDropdown.style.overflow = 'hidden';
+
+    const menuItems = ['Profile Settings', 'Scenario Library', 'Shared Events', 'Help', 'Logout'];
+    menuItems.forEach(item => {
+        const menuItem = document.createElement('div');
+        menuItem.textContent = item;
+        menuItem.style.padding = '8px 12px';
+        menuItem.style.cursor = 'pointer';
+        menuItem.addEventListener('mouseenter', () => menuItem.style.backgroundColor = '#eee');
+        menuItem.addEventListener('mouseleave', () => menuItem.style.backgroundColor = '#fff');
+        menuDropdown.appendChild(menuItem);
+    });
+
+    menuButton.addEventListener('click', () => {
+        menuDropdown.style.display = menuDropdown.style.display === 'block' ? 'none' : 'block';
+    });
+
+    menuContainer.appendChild(menuButton);
+    menuContainer.appendChild(menuDropdown);
+
+    topBanner.appendChild(logoTitleContainer);
+    if (scenarioControls) {
+        topBanner.appendChild(scenarioControls);
+    }
+    topBanner.appendChild(menuContainer);
+
+    document.body.appendChild(topBanner);
+	updateCSVPreview();
+	
+
+    const previewContainer = document.getElementById('working-csv-container');
+    const toggleButton = document.getElementById('toggle-csv-preview');
+
+    if (toggleButton && previewContainer) {
+        toggleButton.addEventListener('click', () => {
+            const isCollapsed = previewContainer.classList.contains('collapsed');
+            previewContainer.classList.toggle('collapsed', !isCollapsed);
+            toggleButton.textContent = isCollapsed ? 'Hide Table' : 'Show Table';
+        });
+    } else {
+        console.error('Toggle button or preview container not found.');
+    }
+});
