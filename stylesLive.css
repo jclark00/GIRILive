@@ -116,6 +116,10 @@ input.location-input {
 
 #controls {
     display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    margin-bottom: 20px;
+    display: flex;
     justify-content: space-around;
     align-items: center;
     margin-bottom: 20px;
@@ -228,9 +232,10 @@ label {
 
 /* Additional styles moved from main.html */
 #map {
+    display: block; /* Ensure map is visible by default */
     height: 800px;
     width: 100%;
-    display: none;
+    display: block;
     margin-bottom: 20px;
 }
 
@@ -251,7 +256,7 @@ label {
 
 /* Modal styles */
 #loginModal {
-    display: none;
+    display: block;
     position: fixed;
     z-index: 1000;
     left: 0;
@@ -311,7 +316,7 @@ label {
 
 /* Loading overlay styles */
 #loadingOverlay {
-    display: none;
+    display: block;
     position: fixed;
     top: 0;
     left: 0;
@@ -432,6 +437,7 @@ label {
 }
 
 #map {
+    display: block; /* Ensure map is visible by default */
     position: absolute;
     top: 60px;
     left: 300px;
@@ -439,3 +445,169 @@ label {
     height: calc(100% - 60px);
     margin: 0;
 }
+
+/* Compact Emitter Controls */
+#emitter-name-container div {
+    display: block; /* Stack in a single column */
+    margin: 5px 0; /* Reduce vertical spacing */
+    font-size: 0.85em; /* Smaller font size */
+}
+
+#emitter-name-container label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    font-size: 0.85em; /* Consistent smaller font */
+}
+
+/* Ensure the sidebar content fits and scrolls if needed */
+#left-sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 300px;
+    height: calc(100% - 60px);
+    background-color: rgba(13, 13, 13, 0.95);
+    padding: 10px;
+    overflow-y: auto; /* Ensure content can scroll */
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    box-shadow: 2px 0 5px rgba(0,0,0,0.7);
+}
+
+/* Single-column emitter controls with responsive width */
+#emitter-name-container div {
+    display: block;
+    margin: 5px 0;
+    font-size: 0.85em;
+    width: 100%; /* Ensure full width */
+    box-sizing: border-box;
+}
+
+#emitter-name-container label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%; /* Make sure it fits */
+    box-sizing: border-box;
+    font-size: 0.85em;
+    flex-wrap: wrap; /* Allow wrapping if necessary */
+}
+
+#emitter-name-container input[type="number"] {
+    width: 60px; /* Small width for count input */
+    margin-left: auto; /* Push to the right */
+}
+
+/* Collapsible Icon Bar */
+#icon-bar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 50px;
+    height: calc(100% - 60px);
+    background-color: rgba(13, 13, 13, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 10px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.7);
+    z-index: 998;
+}
+
+.icon-button {
+    background: none;
+    color: #fff;
+    border: none;
+    margin: 10px 0;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+#slide-out-panel {
+    position: fixed;
+    top: 60px;
+    left: 50px;
+    width: 300px;
+    height: calc(100% - 60px);
+    background-color: rgba(13, 13, 13, 0.95);
+    padding: 10px;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.7);
+    z-index: 999;
+}
+
+#map {
+    border: 0px solid red !important;
+    background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+#map {
+    min-width: 800px !important;
+    min-height: 600px !important;
+}
+
+html, body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+
+#map {
+    width: 100vw !important;
+    height: 100vh !important;
+}
+
+#map-wrapper {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+html {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+    border: 0px solid red !important;
+}
+
+body {
+    background-color: rgba(0, 255, 0, 0.1) !important;
+    border: 0px solid green !important;
+}
+
+#map-wrapper {
+    background-color: rgba(0, 0, 255, 0.1) !;
+    border: 0px solid blue !;
+}
+
+#map {
+    background-color: rgba(255, 255, 0, 0.1) ;
+    border: 0px solid yellow ;
+}
+
+html, body, #map-wrapper, #map {
+    position: relative !important;
+    display: block !important;
+}
+
+.collapsed {
+    display: none !important;
+}
+
+#map {
+    pointer-events: auto !important;
+    z-index: 0 !important;
+}
+
+#working-csv-container {
+    z-index: 5000 !important;
+}
+
+#toggle-csv-preview {
+    z-index: 5001 !important;
+}
+
+#map {
+    position: relative !important;
+    z-index: 0 !important;
+}
+
