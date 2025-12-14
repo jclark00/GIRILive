@@ -5,9 +5,9 @@ body {
     color: #fff;
     font-family: 'Orbitron', sans-serif, fantasy;
     margin: 0;
-    padding: 20px;
+    padding: 0px;
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.8);
-    background-image: url('./pictures/bg2.jpg');
+    background-image: url('./pictures/logo.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -24,7 +24,7 @@ h1 {
 }
 
 h2 {
-    color: #ff9800;
+    color: #ddecf0;
     position: relative;
     padding-bottom: 10px;
     text-align: center;
@@ -43,40 +43,61 @@ h2::after {
     left: 50%;
     bottom: 0;
     width: 100%;
-    height: 2px;
-    background: #ff9800;
+    height: 1px;
+    background: rgba(252, 65, 13, 0.5);
     transform: translateX(-50%);
-    box-shadow: 0 0 10px rgba(255, 152, 0, 0.8);
+    box-shadow: 0 0 5px rgba(252, 65, 13, 0.8);
 }
 
-select, button, input {
-    margin: 5px;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0 4px #666;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
-    font-family: 'Orbitron', sans-serif;
-}
+#select, button, input {
+#    margin: 5px;
+#    padding: 10px;
+#    border: none;
+#    border-radius: 5px;
+#    box-shadow: 0 4px #666;
+#    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+#    font-family: 'Orbitron', sans-serif;
+#}
 
 select, input[type="number"], input[type="text"] {
     background-color: rgba(33, 33, 33, 0.8);
     color: #fff;
 }
 
-button {
-    cursor: pointer;
-    transition: all 0.3s ease;
+button{
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: .2px;
+
+  padding: 7px 12px;
+  border-radius: 8px;
+
+  border: 1px solid var(--stroke);
+  background: rgba(255,255,255,.08);
+  color: var(--text);
+
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset;
+  cursor: pointer;
+
+  transition: transform .05s ease, background .15s ease, border-color .15s ease;
 }
 
-button:hover {
-    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.6);
+button:hover{
+  background: rgba(255,255,255,.12);
+  border-color: rgba(255,255,255,.16);
 }
 
-button:active {
-    box-shadow: 0 2px #666;
-    transform: translateY(2px);
+button:active{
+  transform: translateY(1px);
 }
+
+
+button:focus-visible{
+  outline: 2px solid rgba(255,170,0,.55); /* subtle amber focus ring */
+  outline-offset: 2px;
+}
+
 
 button.dark-red {
     background-color: #a33;
@@ -113,6 +134,7 @@ input[type="number"], input[type="text"] {
 input.location-input {
     width: 150px; /* Width for location input */
 }
+
 
 #controls {
     display: flex;
@@ -369,59 +391,21 @@ label {
 }
 
 /* Specific Button Styles */
-.pause-button {
-    background-color: #DAA520; /* Burnt yellow color */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px 20px;
-    margin: 0 10px; /* Add horizontal margin between buttons */
-}
+.pause-button{ background: rgba(241, 196, 15, .22); border-color: rgba(241,196,15,.35); color: rgba(255,255,255,.88); }
 
 .pause-button:hover {
     background-color: #B8860B; /* Darker shade for hover effect */
 }
 
-.play-button {
-    background-color: #0cf53b;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px 20px;
-    margin: 0 10px; /* Add horizontal margin between buttons */
-}
+.play-button{ background: rgba(46, 204, 113, .22); border-color: rgba(46,204,113,.35); }
 
 .play-button:hover {
     background-color: #0da12a; 
 }
 
-.stop-button {
-    background-color: #FF0000; /* Red color */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    padding: 10px 20px;
-    margin: 0 10px; /* Add horizontal margin between buttons */
-}
+.stop-button{ background: rgba(231, 76, 60, .22); border-color: rgba(231,76,60,.35); }
 /* New Layout Styles */
-#top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background-color: rgba(13, 13, 13, 0.95);
-    padding: 10px;
-    display: flex;
-    justify-content: center;
-    z-index: 999;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.7);
-}
+
 
 #left-sidebar {
     position: fixed;
@@ -519,9 +503,15 @@ label {
     background: none;
     color: #fff;
     border: none;
-    margin: 10px 0;
+    margin: 0px;
     font-size: 1.5em;
     cursor: pointer;
+}
+
+.icon-button img.icon-img{
+  width: 30px;
+  height: 30px;
+  display: block;
 }
 
 #slide-out-panel {
@@ -611,3 +601,123 @@ html, body, #map-wrapper, #map {
     z-index: 0 !important;
 }
 
+
+
+/* === CSV Preview Toggle Button Placement === */
+/* Table hidden -> bottom center of viewport */
+#toggle-csv-preview {
+    position: fixed;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    z-index: 5001;
+}
+
+/* Table shown -> dock button to top-center INSIDE the table container */
+#working-csv-container:not(.collapsed) #toggle-csv-preview {
+    position: sticky;         /* stays at top when scrolling table */
+    top: 6px;
+    left: 0;
+    bottom: auto;
+    transform: none;
+    display: block;
+    width: fit-content;
+    margin: 0 auto 8px auto;  /* centered with a little spacing */
+    z-index: 5002;
+}
+
+#top-center {
+  justify-self: center;
+}
+
+#top-center .play-button,
+#top-center .pause-button,
+#top-center .stop-button {
+  width: 110px;      /* adjust if you want wider */
+  margin: 0;         /* remove per-button margins; use gap instead */
+  text-align: center;
+}
+
+:root{
+  --ui-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --mono-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+  --text: rgba(255,255,255,.88);
+  --muted: rgba(255,255,255,.65);
+
+  --panel: rgba(13,13,13,.92);
+  --panel-2: rgba(20,20,20,.92);
+  --stroke: rgba(255,255,255,.10);
+
+  --radius: 10px;
+}
+
+html, body{
+  font-family: var(--ui-font);
+  font-size: 13px;            /* smaller = less cartoony */
+  line-height: 1.35;
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: geometricPrecision;
+}
+
+h1, h2, h3{
+  font-weight: 600;
+  letter-spacing: .2px;
+}
+
+select, input, textarea{
+  font-family: var(--ui-font);
+  font-size: 12.5px;
+  color: var(--text);
+
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--stroke);
+  border-radius: 8px;
+
+  padding: 7px 10px;
+}
+
+label{
+  font-size: 12px;
+  color: var(--muted);
+}
+
+#top-banner, #top-bar{
+  background: var(--panel) !important;
+  border-bottom: 1px solid rgba(252, 65, 13,.15);
+}
+
+#slide-out-panel, #icon-bar{
+  background: var(--panel) !important;
+  border-left: 1px solid rgba(255,255,255,.08);
+}
+
+#working-csv-container{
+  background: var(--panel) !important;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+#working-csv-container table,
+#working-csv-container th,
+#working-csv-container td{
+  font-size: 12px;
+}
+
+select {
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.88);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+/* Critical: dropdown list items (prevents white-on-white) */
+select option {
+  background: #0f0f0f;
+  color: rgba(255,255,255,.92);
+}
+
+/* Nice-to-have: highlight selected/hovered option where supported */
+select option:checked {
+  background: #1a1a1a;
+}
