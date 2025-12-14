@@ -7,11 +7,12 @@
     <title>GIRI Minimal Fullscreen Map</title>
 	<script src="https://unpkg.com/mgrs@1.0.0/mgrs.js"></script>
     <link rel="stylesheet" href="stylesLive.css">
-	<script src="functionsLive.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
     <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+	<script src="dataLive.js"></script>
+	<script src="functionsLive.js"></script>
 	
 	<style>
 		#map {
@@ -36,29 +37,37 @@
 .leaflet-top.leaflet-left {
     top: 70px !important;
     z-index: 1000 !important;
-    margin-left: 60px !important;
+    margin-left: 0px !important;
 }
 </style>
 
 </head>
 <body>
     
-    <div id="top-bar" style="position: fixed; top: 0; left: 0; width: 100%; background-color: rgba(13, 13, 13, 0.95); padding: 10px; display: flex; justify-content: center; z-index: 999;">
-        <button id="play-data" class="play-button">Play Data</button>
-        <button id="pause-data" class="pause-button">Pause Data</button>
-        <button id="stop-data" class="stop-button">Stop Data</button>
-    </div>
     
-    <div id="icon-bar" style="position: fixed; top: 50px; left: 0; width: 50px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); display: flex; flex-direction: column; align-items: center; padding-top: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.7); z-index: 998;">
+<div id="icon-bar" style="position: fixed; top: 50px; left: 0; width: 50px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); display: flex; flex-direction: column; align-items: center; padding-top: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.7); z-index: 998;">
         
-<button id="equipment-icon" class="icon-button">
-  <svg width="20" height="20" viewBox="0 0 100 100" style="margin-right: 5px;">
-    <circle cx="50" cy="50" r="45" stroke="red" stroke-width="5" fill="none" />
-    <line x1="50" y1="5" x2="50" y2="95" stroke="red" stroke-width="5"/>
-    <line x1="5" y1="50" x2="95" y2="50" stroke="red" stroke-width="5"/>
-  </svg>
-  <span class="icon-label" style="display: none; font-size: 0.7em; margin-left: 5px;">Add Equipment</span>
-</button>
+	<button id="equipment-icon" class="icon-button" title="Add Equipment">
+	  <img class="icon-img" src="./pictures/add-equipment.png" alt="Add Equipment">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment</span>
+	</button>
+
+	<button id="group-equipment-icon" class="icon-button" title="Add Equipment Group">
+	  <img class="icon-img" src="./pictures/add-group.png" alt="Add Equipment Group">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment Group</span>
+	</button>
+
+	<button id="movement-track-icon" class="icon-button" title="Movement Track">
+	  <img class="icon-img" src="./pictures/track.png" alt="Set Movement Track">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment Group</span>
+	</button>
+	
+	 <div class="icon-bar-spacer"></div>
+	 
+	 <button id="delete-equipment-icon" class="icon-button">
+	  <img class="icon-img" src="./pictures/delete.png" alt="Add Equipment">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Delete Equipment</span>
+	 </button>
 
         <button id="expand-toggle" class="expand-toggle" style="background: none; color: #fff; border: none; margin-top: auto; font-size: 1.5em; cursor: pointer;">⮞</button>
     </div>
@@ -120,7 +129,7 @@
 
 <h2 style="font-size: 1em;"></h2>
 </div>
-    <div id="map"style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; border: 0px solid yellow;"></div>
+    <div id="map" style="position: fixed; top: 50px; left: 0; right: 0; bottom: 0; border: 0px solid yellow;"></div>
 
 
 
@@ -132,10 +141,7 @@
   <div id="working-csv-preview" style="padding: 10px;"></div>
 </div>
 
-<button id="toggle-csv-preview"
-        style="position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); z-index: 5001;">Show Table</button>
-  Show Table
-</button>
+<button id="toggle-csv-preview">Show Table</button>
  
     
 <script>
@@ -193,73 +199,54 @@ document.addEventListener('DOMContentLoaded', function() {
         aoiControls.style.display = drawAoiCheckbox.checked ? 'block' : 'none';
     });
 });
+</script>
 
+
+<script>
 document.addEventListener('DOMContentLoaded', function() {
-    const placedSystems = new Map();
-
-    function startPublishing(system) {
-        function scheduleBurst() {
-            const burstCount = Math.floor(Math.random() * 4) + 3; // 3 to 6 messages
-            console.log(`Publishing ${burstCount} messages for ${system.name}`);
-            for (let i = 0; i < burstCount; i++) {
-                const offsetLat = (Math.random() - 0.5) * 0.0015 * 2;
-                const offsetLon = (Math.random() - 0.5) * 0.0015 * 2;
-
-                const message = {
-                    emitter: system.name,
-                    lat: system.lat + offsetLat,
-                    lon: system.lon + offsetLon,
-                    timestamp: new Date().toISOString()
-                };
-
-                console.log('Sending message:', message);
-
-                fetch('http://localhost:3000/api/publish', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ topic: 'giri-topic', message })
-                });
-            }
-
-            const nextDelay = (30 + Math.random() * 30) * 1000; // 30 to 60 seconds
-            const timeoutId = setTimeout(scheduleBurst, nextDelay);
-            placedSystems.set(system.name, timeoutId);
+    const systemOptions = {
+        "RU": {
+            "SAM": ["S-300", "S-400", "S-500", "Buk-M3", "Tor-M2", "Pantsir-S1"],
+            "EW": ["Krasukha", "Murmansk-BN", "Leer-3", "Moskva-1", "Divnomorye"],
+            "TBM": ["Iskander-M", "SS-26 Stone", "Tochka-U"],
+            "EMW": ["EMW-Alpha", "EMW-Beta", "EMW-Gamma"],
+            "MARITIME": ["Admiral Gorshkov", "Admiral Kuznetsov", "Kirov-Class", "Slava-Class"],
+            "AIR": ["Su-35", "MiG-31", "Su-57", "Su-30SM", "MiG-29"]
+        },
+        "CN": {
+            "SAM": ["HQ-9", "HQ-22", "HQ-16", "HQ-7", "HQ-6"],
+            "EW": ["JY-27A", "DF-16 EW", "Type 305B", "Type 309A", "Type 310C"],
+            "TBM": ["DF-21D", "DF-26", "DF-31", "DF-41"],
+            "EMW": ["EMW-Dragon", "EMW-Tiger", "EMW-Phoenix"],
+            "MARITIME": ["Type 055", "Type 052D", "Type 071", "Type 075"],
+            "AIR": ["J-20", "J-10C", "J-16", "J-11B", "JH-7A"]
         }
+    };
 
-        scheduleBurst();
-    }
+    const countrySelect = document.getElementById('country-select');
+    const classSelect = document.getElementById('system-class-select');
+    const systemSelect = document.getElementById('system-select');
 
-    function stopPublishing(name) {
-        if (placedSystems.has(name)) {
-            clearTimeout(placedSystems.get(name));
-            placedSystems.delete(name);
-        }
-    }
+    function updateSystemOptions() {
+        const selectedCountry = countrySelect.value;
+        const selectedClass = classSelect.value;
+        systemSelect.innerHTML = '<option value="">Select System</option>';
 
-    function onSystemPlaced(name, lat, lon) {
-        const system = { name, lat, lon };
-        startPublishing(system);
-    }
-
-    window.onSystemPlaced = onSystemPlaced;
-    window.stopPublishing = stopPublishing;
-
-    // Link to equipment delete button
-    const deleteButtonWrapper = document.getElementById('delete-equipment-wrapper');
-    if (deleteButtonWrapper) {
-        deleteButtonWrapper.addEventListener('click', function() {
-            const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
-            selectedRows.forEach(row => {
-                const nameCell = row.cells[0];
-                if (nameCell) {
-                    const systemName = nameCell.textContent.trim();
-                    stopPublishing(systemName);
-                }
+        if (systemOptions[selectedCountry] && systemOptions[selectedCountry][selectedClass]) {
+            systemOptions[selectedCountry][selectedClass].forEach(system => {
+                const option = document.createElement('option');
+                option.value = system;
+                option.textContent = system;
+                systemSelect.appendChild(option);
             });
-        });
+        }
     }
+
+    countrySelect.addEventListener('change', updateSystemOptions);
+    classSelect.addEventListener('change', updateSystemOptions);
 });
 </script>
 
 </body>
 </html>
+
