@@ -465,26 +465,84 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const slideOutPanel = document.getElementById('slide-out-panel');
-    const equipmentIcon = document.getElementById('equipment-icon');
-    const iconBar = document.getElementById('icon-bar');
-    const expandToggle = document.getElementById('expand-toggle');
+  const slideOutPanel = document.getElementById('slide-out-panel');
+  const equipmentIcon = document.getElementById('equipment-icon');
+  const groupEquipmentIcon = document.getElementById('group-equipment-icon');
+  const iconBar = document.getElementById('icon-bar');
+  const expandToggle = document.getElementById('expand-toggle');
 
-    let panelVisible = false;
-    let expanded = false;
+  let panelVisible = false;
+  let expanded = false;
 
+  if (groupEquipmentIcon) {
+    groupEquipmentIcon.addEventListener('click', () => {
+      panelVisible = true;
+      slideOutPanel.style.display = 'block';
+      slideOutPanel.style.left = expanded ? '200px' : '50px';
+
+      const panelContent = document.getElementById('slide-out-panel-content');
+      if (!panelContent) return;
+
+      panelContent.innerHTML = `
+        <h3 style="margin-top:0;">Add Equipment Group</h3>
+
+        <label style="display:block; margin: 10px 0 6px;">Preset</label>
+        <select id="group-preset-select" style="width:100%;">
+          <option value="">Select preset...</option>
+          <option value="sam_battery">SAM Battery (example)</option>
+          <option value="ew_site">EW Site (example)</option>
+          <option value="mixed_pkg">Mixed Package (example)</option>
+        </select>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button id="preview-group-btn">Preview</button>
+          <button id="add-group-btn">Add Group</button>
+        </div>
+
+        <div id="group-preview" style="margin-top:10px; font-size:12px; opacity:.8;"></div>
+      `;
+
+      const sel = document.getElementById('group-preset-select');
+      const preview = document.getElementById('group-preview');
+
+      document.getElementById('preview-group-btn')?.addEventListener('click', () => {
+        preview.textContent = sel?.value ? `Preset: ${sel.value}` : 'Choose a preset first.';
+      });
+
+      document.getElementById('add-group-btn')?.addEventListener('click', () => {
+        if (!sel?.value) { preview.textContent = 'Choose a preset first.'; return; }
+        preview.textContent = `Adding preset: ${sel.value} (hook up real logic next).`;
+      });
+    });
+  }
+
+  if (equipmentIcon) {
     equipmentIcon.addEventListener('click', () => {
-        panelVisible = !panelVisible;
-        slideOutPanel.style.display = panelVisible ? 'block' : 'none';
-        slideOutPanel.style.left = expanded ? '200px' : '50px';
+      panelVisible = !panelVisible;
+      slideOutPanel.style.display = panelVisible ? 'block' : 'none';
+      slideOutPanel.style.left = expanded ? '200px' : '50px';
     });
+  }
 
+  if (expandToggle) {
     expandToggle.addEventListener('click', () => {
-        expanded = !expanded;
-        iconBar.style.width = expanded ? '200px' : '50px';
-        deleteButtonLabel.style.display = expanded ? 'inline' : 'none';
-        expandToggle.textContent = expanded ? 'â®œ' : 'â®ž';
+      expanded = !expanded;
+      iconBar.style.width = expanded ? '200px' : '50px';
+
+      // show/hide ALL icon labels safely
+      iconBar.querySelectorAll('.icon-label').forEach(lbl => {
+        lbl.style.display = expanded ? 'inline' : 'none';
+      });
+
+      // correct arrow symbols
+      expandToggle.textContent = expanded ? '⮜' : '⮞';
+
+      // keep panel aligned if it's open
+      if (panelVisible) {
+        slideOutPanel.style.left = expanded ? '200px' : '50px';
+      }
     });
+  }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -619,31 +677,32 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const iconBar = document.getElementById('icon-bar');
     const equipmentIcon = document.getElementById('equipment-icon');
+	const deleteEquipmentIcon = document.getElementById('delete-equipment-icon');
+	
+//    const deleteButtonWrapper = document.createElement('div');
+//    deleteButtonWrapper.id = 'delete-equipment-wrapper';
+//    deleteButtonWrapper.style.marginTop = '10px';
+//    deleteButtonWrapper.style.backgroundColor = '#000';
+//    deleteButtonWrapper.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
+//    deleteButtonWrapper.style.width = '40px';
+//    deleteButtonWrapper.style.height = '40px';
+//    deleteButtonWrapper.style.display = 'flex';
+//    deleteButtonWrapper.style.alignItems = 'center';
+//    deleteButtonWrapper.style.justifyContent = 'center';
+//    deleteButtonWrapper.style.cursor = 'pointer';
+//    deleteButtonWrapper.style.transition = 'width 0.3s ease';
 
-    const deleteButtonWrapper = document.createElement('div');
-    deleteButtonWrapper.id = 'delete-equipment-wrapper';
-    deleteButtonWrapper.style.marginTop = '10px';
-    deleteButtonWrapper.style.backgroundColor = '#000';
-    deleteButtonWrapper.style.boxShadow = '0 0 5px rgba(0,0,0,0.5)';
-    deleteButtonWrapper.style.width = '40px';
-    deleteButtonWrapper.style.height = '40px';
-    deleteButtonWrapper.style.display = 'flex';
-    deleteButtonWrapper.style.alignItems = 'center';
-    deleteButtonWrapper.style.justifyContent = 'center';
-    deleteButtonWrapper.style.cursor = 'pointer';
-    deleteButtonWrapper.style.transition = 'width 0.3s ease';
+//    const deleteButtonIcon = document.createElement('span');
+//    deleteButtonIcon.innerHTML = '🗑️';
+//
+//    const deleteButtonLabel = document.createElement('span');
+//    deleteButtonLabel.textContent = 'Delete Equipment';
+//    deleteButtonLabel.style.marginLeft = '10px';
+//    deleteButtonLabel.style.display = 'none';
 
-    const deleteButtonIcon = document.createElement('span');
-    deleteButtonIcon.innerHTML = '🗑️';
-
-    const deleteButtonLabel = document.createElement('span');
-    deleteButtonLabel.textContent = 'Delete Equipment';
-    deleteButtonLabel.style.marginLeft = '10px';
-    deleteButtonLabel.style.display = 'none';
-
-    deleteButtonWrapper.appendChild(deleteButtonIcon);
-    deleteButtonWrapper.appendChild(deleteButtonLabel);
-    iconBar.insertBefore(deleteButtonWrapper, equipmentIcon.nextSibling);
+//    deleteButtonWrapper.appendChild(deleteButtonIcon);
+//    deleteButtonWrapper.appendChild(deleteButtonLabel);
+//    iconBar.insertBefore(deleteButtonWrapper, equipmentIcon.nextSibling);
 
     const expandToggle = document.getElementById('expand-toggle');
     expandToggle.style.position = 'fixed';
@@ -653,26 +712,43 @@ document.addEventListener('DOMContentLoaded', function() {
     expandToggle.addEventListener('click', () => {
         expanded = !expanded;
         iconBar.style.width = expanded ? '200px' : '50px';
-        deleteButtonWrapper.style.width = expanded ? '200px' : '40px';
-        deleteButtonLabel.style.display = expanded ? 'inline' : 'none';
+//        deleteButtonWrapper.style.width = expanded ? '200px' : '40px';
+//        deleteButtonLabel.style.display = expanded ? 'inline' : 'none';
         expandToggle.textContent = expanded ? '⮜' : '⮞';
     });
-
-    deleteButtonWrapper.addEventListener('click', function() {
+	if (deleteEquipmentIcon) {
+	  deleteEquipmentIcon.addEventListener('click', function () {
         const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
-        const indicesToRemove = Array.from(selectedRows).map(row => Array.from(row.parentElement.children).indexOf(row) - 1);
+        const indicesToRemove = Array.from(selectedRows).map(
+          row => Array.from(row.parentElement.children).indexOf(row) - 1
+        );
 
         indicesToRemove.forEach(index => {
-            const row = workingCSV[index];
-            if (mapMarkers[index]) {
-                map.removeLayer(mapMarkers[index]);
-                delete mapMarkers[index];
-            }
+          if (mapMarkers[index]) {
+            map.removeLayer(mapMarkers[index]);
+            delete mapMarkers[index];
+          }
         });
 
         workingCSV = workingCSV.filter((_, index) => !indicesToRemove.includes(index));
-		updateCSVPreview();
-    });
+        updateCSVPreview();
+      });
+    }
+    // deleteButtonWrapper.addEventListener('click', function() {
+        // const selectedRows = document.querySelectorAll('#working-csv-preview tr.selected');
+        // const indicesToRemove = Array.from(selectedRows).map(row => Array.from(row.parentElement.children).indexOf(row) - 1);
+
+        // indicesToRemove.forEach(index => {
+            // const row = workingCSV[index];
+            // if (mapMarkers[index]) {
+                // map.removeLayer(mapMarkers[index]);
+                // delete mapMarkers[index];
+            // }
+        // });
+
+        // workingCSV = workingCSV.filter((_, index) => !indicesToRemove.includes(index));
+		// updateCSVPreview();
+    // });
 
     // Add map marker popup with Select button functionality
     Object.entries(mapMarkers).forEach(([index, marker]) => {
@@ -745,7 +821,6 @@ function placeEmitterAtLocation(latlng) {
     workingCSV.push(newEmitter);
     updateCSVPreview();
     plotEmitters();
-	onSystemPlaced(emitterName, latlng.lat, latlng.lng, elnot, freq, systemType);
 }
 document.addEventListener('DOMContentLoaded', function() {
     // Create top banner
@@ -773,15 +848,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const logo = document.createElement('img');
     logo.src = './pictures/logo.png';
     logo.alt = 'GIRI Logo';
-	logo.style.position = 'fixed';
+	logo.style.position = 'static';
     logo.style.height = '50px';
-    logo.style.justifyContent = 'left';
+    logo.style.marginLeft = '-15px';
 
     const title = document.createElement('span');
-    title.textContent = 'GIRI Training Tool';
+    title.textContent = 'Synthetic Data Generation';
     title.style.fontSize = '18px';
-    title.style.fontWeight = 'bold';
-	title.style.marginLeft = '200px';
+	title.style.marginLeft = '12px';
+
 
     logoTitleContainer.appendChild(logo);
     logoTitleContainer.appendChild(title);
@@ -793,6 +868,9 @@ document.addEventListener('DOMContentLoaded', function() {
     scenarioControls.style.justifyContent = 'center';
     scenarioControls.style.alignItems = 'center';
     scenarioControls.style.gap = '10px';
+	scenarioControls.style.position = 'absolute';
+	scenarioControls.style.left = '50%';
+	scenarioControls.style.transform = 'translateX(-50%)';
     
     // Play Button
     const playButton = document.createElement('button');
@@ -815,7 +893,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Right side - dropdown menu
     const menuContainer = document.createElement('div');
-    menuContainer.style.marginRight = '20px';
+    menuContainer.style.marginRight = '30px';
 
     const menuButton = document.createElement('button');
     menuButton.textContent = '☰ Menu';
@@ -828,10 +906,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuDropdown = document.createElement('div');
     menuDropdown.style.display = 'none';
     menuDropdown.style.position = 'absolute';
-    menuDropdown.style.right = '0';
-    menuDropdown.style.top = '35px';
-    menuDropdown.style.backgroundColor = '#fff';
-    menuDropdown.style.color = '#000';
+    menuDropdown.style.right = '0px';
+    menuDropdown.style.top = 'calc(80% + 1px)';
+	menuDropdown.style.zIndex = '2000';
+	menuDropdown.style.minWidth = '180px';
+    menuDropdown.style.backgroundColor = '#323837';
+    menuDropdown.style.color = '#f5f7f7';
     menuDropdown.style.boxShadow = '0 2px 5px rgba(0,0,0,0.3)';
     menuDropdown.style.borderRadius = '4px';
     menuDropdown.style.overflow = 'hidden';
@@ -842,8 +922,8 @@ document.addEventListener('DOMContentLoaded', function() {
         menuItem.textContent = item;
         menuItem.style.padding = '8px 12px';
         menuItem.style.cursor = 'pointer';
-        menuItem.addEventListener('mouseenter', () => menuItem.style.backgroundColor = '#eee');
-        menuItem.addEventListener('mouseleave', () => menuItem.style.backgroundColor = '#fff');
+        menuItem.addEventListener('mouseenter', () => menuItem.style.backgroundColor = '#2b5d66');
+        menuItem.addEventListener('mouseleave', () => menuItem.style.backgroundColor = '#323837');
         menuDropdown.appendChild(menuItem);
     });
 
@@ -864,16 +944,47 @@ document.addEventListener('DOMContentLoaded', function() {
 	updateCSVPreview();
 	
 
-    const previewContainer = document.getElementById('working-csv-container');
-    const toggleButton = document.getElementById('toggle-csv-preview');
+	const previewContainer = document.getElementById('working-csv-container');
+	const toggleButton = document.getElementById('toggle-csv-preview');
 
-    if (toggleButton && previewContainer) {
-        toggleButton.addEventListener('click', () => {
-            const isCollapsed = previewContainer.classList.contains('collapsed');
-            previewContainer.classList.toggle('collapsed', !isCollapsed);
-            toggleButton.textContent = isCollapsed ? 'Hide Table' : 'Show Table';
-        });
-    } else {
-        console.error('Toggle button or preview container not found.');
-    }
+	if (toggleButton && previewContainer) {
+	  toggleButton.addEventListener('click', () => {
+		const willShow = previewContainer.classList.contains('collapsed');
+
+		// toggle the table visibility
+		previewContainer.classList.toggle('collapsed', !willShow);
+
+		// update button label
+		toggleButton.textContent = willShow ? 'Hide Table' : 'Show Table';
+
+		// keep the button usable even when table is hidden
+		if (willShow) {
+		  // table is showing -> dock button to top of table
+		  previewContainer.appendChild(toggleButton);
+		  toggleButton.style.position = 'sticky';
+		  toggleButton.style.top = '6px';
+		  toggleButton.style.left = '50%';
+		  toggleButton.style.transform = 'translateX(-50%)';
+		  toggleButton.style.zIndex = '5001';
+		} else {
+		  // table is hiding -> return button to bottom center of screen
+		  document.body.appendChild(toggleButton);
+		  toggleButton.style.position = 'fixed';
+		  toggleButton.style.bottom = '12px';
+		  toggleButton.style.left = '50%';
+		  toggleButton.style.transform = 'translateX(-50%)';
+		  toggleButton.style.top = '';
+		  toggleButton.style.zIndex = '5001';
+		}
+	  });
+
+	} else {
+	  console.error('Toggle button or preview container not found.', { toggleButton, previewContainer });
+	}
 });
+
+
+
+
+
+
