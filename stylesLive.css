@@ -487,7 +487,7 @@ label {
 #icon-bar {
     position: fixed;
     top: 60px;
-    left: 0;
+    right: 0;
     width: 50px;
     height: calc(100% - 60px);
     background-color: rgba(13, 13, 13, 0.95);
@@ -517,7 +517,7 @@ label {
 #slide-out-panel {
     position: fixed;
     top: 60px;
-    left: 50px;
+    right: 50px;
     width: 300px;
     height: calc(100% - 60px);
     background-color: rgba(13, 13, 13, 0.95);
@@ -720,4 +720,47 @@ select option {
 /* Nice-to-have: highlight selected/hovered option where supported */
 select option:checked {
   background: #1a1a1a;
+}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip{
+  background: rgba(13,13,13,.95) !important;
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 10px 25px rgba(0,0,0,.45);
+}
+
+.leaflet-popup-content{
+  margin: 5px 12px;
+  color: rgba(255,255,255,.90) !important;
+  font-family: var(--ui-font);
+  font-size: 12px;
+  line-height: 1.35;
+  text-shadow: none;
+}
+
+.leaflet-popup-content strong{
+  color: rgba(255,255,255,.95) !important;
+}
+
+.leaflet-popup-content button{
+  font-family: var(--ui-font);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.90);
+  cursor: pointer;
+}
+
+.leaflet-popup-content button:hover{
+  background: rgba(255,255,255,.14);
+}
+
+.leaflet-container a.leaflet-popup-close-button{
+  color: rgba(255,255,255,.85) !important;
+}
+.leaflet-container a.leaflet-popup-close-button:hover{
+  color: rgba(255,255,255,1) !important;
+  background: transparent !important;
 }
