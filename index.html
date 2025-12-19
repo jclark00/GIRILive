@@ -45,93 +45,54 @@
 <body>
     
     
-<div id="icon-bar" style="position: fixed; top: 50px; left: 0; width: 50px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); display: flex; flex-direction: column; align-items: center; padding-top: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.7); z-index: 998;">
+<div id="icon-bar" style="position: fixed; top: 50px; right: 0; width: 50px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); display: flex; flex-direction: column; align-items: center; padding-top: 10px; box-shadow: 2px 0 5px rgba(0,0,0,0.7); z-index: 998;">
         
 	<button id="equipment-icon" class="icon-button" title="Add Equipment">
 	  <img class="icon-img" src="./pictures/add-equipment.png" alt="Add Equipment">
-	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment</span>
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Add Equipment</span>
 	</button>
 
 	<button id="group-equipment-icon" class="icon-button" title="Add Equipment Group">
 	  <img class="icon-img" src="./pictures/add-group.png" alt="Add Equipment Group">
-	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment Group</span>
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Add Equipment Group</span>
 	</button>
 
 	<button id="movement-track-icon" class="icon-button" title="Movement Track">
 	  <img class="icon-img" src="./pictures/track.png" alt="Set Movement Track">
-	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Add Equipment Group</span>
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Set Movement Track</span>
 	</button>
-	
+
+	<button id="movement-orbit-icon" class="icon-button" title="Movement Orbit">
+	  <img class="icon-img" src="./pictures/orbit.png" alt="Set Movement Orbit">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Set Movement Orbit</span>
+	</button>
+
+	<button id="movement-orbit-icon" class="icon-button" title="Noise">
+	  <img class="icon-img" src="./pictures/noise.png" alt="Add Noise">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Add Noise to Map</span>
+	</button>
+
+	<button id="movement-orbit-icon" class="icon-button" title="Upload">
+	  <img class="icon-img" src="./pictures/upload.png" alt="Upload Equipment">
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Import Equipment to Map</span>
+	</button>	
+
 	 <div class="icon-bar-spacer"></div>
 	 
 	 <button id="delete-equipment-icon" class="icon-button">
 	  <img class="icon-img" src="./pictures/delete.png" alt="Add Equipment">
-	  <span class="icon-label" style="display:none; font-size:0.7em; margin-left:5px;">Delete Equipment</span>
+	  <span class="icon-label" style="display:none; font-size:0.7em; margin-right:5px;">Delete Equipment</span>
 	 </button>
 
         <button id="expand-toggle" class="expand-toggle" style="background: none; color: #fff; border: none; margin-top: auto; font-size: 1.5em; cursor: pointer;">⮞</button>
     </div>
     
-    <div id="slide-out-panel" style="position: fixed; top: 50px; left: 50px; width: 300px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); padding: 10px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.7); display: none; z-index: 997; transition: left 0.3s;">
-        
-        
-        <h2 style="font-size: 1em;">Select Country</h2>
-        <select id="country-select" style="width: 100%; font-size: 0.8em;">
-            <option value="">Select Country</option>
-            <option value="KN">KN</option>
-            <option value="RU">RU</option>
-            <option value="CN">CN</option>
-            <option value="IR">IR</option>
-            <option value="AF">AF</option>
-            <option value="SY">SY</option>
-            <option value="IZ">IZ</option>
-            <option value="TU">TU</option>
-            <option value="TW">TW</option>
-        </select>
+	<div id="slide-out-panel" style="position: fixed; top: 50px; right: 50px; width: 300px; height: calc(100vh - 50px); background-color: rgba(13, 13, 13, 0.95); padding: 10px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.7); display: none; z-index: 997; transition: right 0.3s;">
+	  <div id="slide-out-panel-content"></div>
+	
 
-        <h2 style="font-size: 1em;">Select System Class</h2>
-        <select id="system-class-select" style="width: 100%; font-size: 0.8em;">
-            <option value="">Select System Class</option>
-            <option value="SAM">SAM</option>
-            <option value="TBM">TBM</option>
-            <option value="EW">EW</option>
-            <option value="EMW">EMW</option>
-            <option value="MARITIME">MARITIME</option>
-            <option value="AIR">AIR</option>
-        </select>
-        <h2 style="font-size: 1em;">Select System</h2>
-
-<select id="system-select" style="width: 100%; font-size: 0.8em;">
-    <option value="">Select System</option>
-    <option value="system1">System 1</option>
-    <option value="system2">System 2</option>
-    <option value="system3">System 3</option>
-</select>
-
-        
-
-
-
-<h2 style="font-size: 1em;">Placement Options</h2>
-<div style="margin-bottom: 10px;">
-    <input type="checkbox" id="click-to-add-checkbox">
-    <label for="click-to-add-checkbox" style="font-size: 0.8em;">Click to Add</label>
-</div>
-<div style="margin-bottom: 10px;">
-    <input type="checkbox" id="draw-aoi-checkbox">
-    <label for="draw-aoi-checkbox" style="font-size: 0.8em;">Draw AOI</label>
-</div>
-<div id="aoi-controls" style="display: none; margin-bottom: 10px;">
-    <label for="number-to-add" style="font-size: 0.8em;">Number to Add:</label>
-    <input type="number" id="number-to-add" style="width: 80px; font-size: 0.8em;" min="1" value="1"><br>
-    <button id="add-to-aoi" style="font-size: 0.8em;">Add to AOI</button>
-</div>
-
-<h2 style="font-size: 1em;"></h2>
 </div>
     <div id="map" style="position: fixed; top: 50px; left: 0; right: 0; bottom: 0; border: 0px solid yellow;"></div>
-
-
 
 <!-- Table Container -->
 <div id="working-csv-container" class="collapsed"
@@ -142,111 +103,5 @@
 </div>
 
 <button id="toggle-csv-preview">Show Table</button>
- 
-    
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const systemOptions = {
-        "RU": {
-            "SAM": ["S-300", "S-400", "S-500", "Buk-M3", "Tor-M2", "Pantsir-S1"],
-            "EW": ["Krasukha", "Murmansk-BN", "Leer-3", "Moskva-1", "Divnomorye"],
-            "TBM": ["Iskander-M", "SS-26 Stone", "Tochka-U"],
-            "EMW": ["EMW-Alpha", "EMW-Beta", "EMW-Gamma"],
-            "MARITIME": ["Admiral Gorshkov", "Admiral Kuznetsov", "Kirov-Class", "Slava-Class"],
-            "AIR": ["Su-35", "MiG-31", "Su-57", "Su-30SM", "MiG-29"]
-        },
-        "CN": {
-            "SAM": ["HQ-9", "HQ-22", "HQ-16", "HQ-7", "HQ-6"],
-            "EW": ["JY-27A", "DF-16 EW", "Type 305B", "Type 309A", "Type 310C"],
-            "TBM": ["DF-21D", "DF-26", "DF-31", "DF-41"],
-            "EMW": ["EMW-Dragon", "EMW-Tiger", "EMW-Phoenix"],
-            "MARITIME": ["Type 055", "Type 052D", "Type 071", "Type 075"],
-            "AIR": ["J-20", "J-10C", "J-16", "J-11B", "JH-7A"]
-        }
-        // Expand with other countries as needed
-    };
-
-    const countrySelect = document.getElementById('country-select');
-    const classSelect = document.getElementById('system-class-select');
-    const systemSelect = document.getElementById('system-select');
-
-    function updateSystemOptions() {
-        const selectedCountry = countrySelect.value;
-        const selectedClass = classSelect.value;
-        systemSelect.innerHTML = '<option value="">Select System</option>';
-
-        if (systemOptions[selectedCountry] && systemOptions[selectedCountry][selectedClass]) {
-            systemOptions[selectedCountry][selectedClass].forEach(system => {
-                const option = document.createElement('option');
-                option.value = system;
-                option.textContent = system;
-                systemSelect.appendChild(option);
-            });
-        }
-    }
-
-    countrySelect.addEventListener('change', updateSystemOptions);
-    classSelect.addEventListener('change', updateSystemOptions);
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const drawAoiCheckbox = document.getElementById('draw-aoi-checkbox');
-    const aoiControls = document.getElementById('aoi-controls');
-    drawAoiCheckbox.addEventListener('change', function() {
-        aoiControls.style.display = drawAoiCheckbox.checked ? 'block' : 'none';
-    });
-});
-</script>
-
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const systemOptions = {
-        "RU": {
-            "SAM": ["S-300", "S-400", "S-500", "Buk-M3", "Tor-M2", "Pantsir-S1"],
-            "EW": ["Krasukha", "Murmansk-BN", "Leer-3", "Moskva-1", "Divnomorye"],
-            "TBM": ["Iskander-M", "SS-26 Stone", "Tochka-U"],
-            "EMW": ["EMW-Alpha", "EMW-Beta", "EMW-Gamma"],
-            "MARITIME": ["Admiral Gorshkov", "Admiral Kuznetsov", "Kirov-Class", "Slava-Class"],
-            "AIR": ["Su-35", "MiG-31", "Su-57", "Su-30SM", "MiG-29"]
-        },
-        "CN": {
-            "SAM": ["HQ-9", "HQ-22", "HQ-16", "HQ-7", "HQ-6"],
-            "EW": ["JY-27A", "DF-16 EW", "Type 305B", "Type 309A", "Type 310C"],
-            "TBM": ["DF-21D", "DF-26", "DF-31", "DF-41"],
-            "EMW": ["EMW-Dragon", "EMW-Tiger", "EMW-Phoenix"],
-            "MARITIME": ["Type 055", "Type 052D", "Type 071", "Type 075"],
-            "AIR": ["J-20", "J-10C", "J-16", "J-11B", "JH-7A"]
-        }
-    };
-
-    const countrySelect = document.getElementById('country-select');
-    const classSelect = document.getElementById('system-class-select');
-    const systemSelect = document.getElementById('system-select');
-
-    function updateSystemOptions() {
-        const selectedCountry = countrySelect.value;
-        const selectedClass = classSelect.value;
-        systemSelect.innerHTML = '<option value="">Select System</option>';
-
-        if (systemOptions[selectedCountry] && systemOptions[selectedCountry][selectedClass]) {
-            systemOptions[selectedCountry][selectedClass].forEach(system => {
-                const option = document.createElement('option');
-                option.value = system;
-                option.textContent = system;
-                systemSelect.appendChild(option);
-            });
-        }
-    }
-
-    countrySelect.addEventListener('change', updateSystemOptions);
-    classSelect.addEventListener('change', updateSystemOptions);
-});
-</script>
-
 </body>
 </html>
-
