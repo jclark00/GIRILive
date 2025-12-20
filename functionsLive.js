@@ -1,6 +1,7 @@
 let groupIcon = null;
 let equipmentIcon = null;
 let movementTrackIcon = null;
+let movementUploadIcon = null;
 let slideOutPanel = null;
 let iconBar = null;
 let expandToggle = null;
@@ -633,6 +634,433 @@ function convertLocationToMGRS(location) {
     }
 }
 
+
+
+// ===============================
+// Bulk equipment CSV import helpers
+// ===============================
+function giriGetEquipmentImportTemplateCSV() {
+    // NOTE: location contains a comma, so it must be quoted in CSV.
+    return [
+        'systemType,systemName,emitterName,elnot,freq,maj,min,ori,location,uniqueID',
+        'SAM,HQ-9,HQ-9-EXAMPLE,ELN00001,9500,1.000,0.500,90.000,"15.000000,100.000000",AB12cd34',
+        'EW,Krasukha,,,,"1.000","0.500","90.000","14.500000,100.250000",'
+    ].join('\n');
+}
+
+function renderUploadPanel() {
+  const panelContent = document.getElementById('slide-out-panel-content');
+  if (!panelContent) return;
+
+  panelContent.innerHTML = `
+    <h3 style="margin-top:0;">Import Equipment to Map</h3>
+
+    <div style="font-size:12px; opacity:.85; margin-bottom:10px;">
+      Upload a CSV to bulk place equipment on the map. Required columns:
+      <code>systemType</code>, <code>systemName</code>, and <code>location</code> (<code>lat,lon</code>).
+      Optional columns: <code>emitterName</code>, <code>elnot</code>, <code>freq</code>, <code>maj</code>, <code>min</code>, <code>ori</code>, <code>uniqueID</code>.
+    </div>
+
+    <button id="download-import-template-btn">Download CSV Template</button>
+
+    <div style="margin-top:12px;">
+      <label style="display:block; margin: 8px 0 6px;">Choose CSV file</label>
+      <input id="import-csv-file" type="file" accept=".csv,text/csv" />
+    </div>
+
+    <div style="margin-top:10px;">
+      <label style="display:flex; align-items:center; gap:8px; font-size:12px;">
+        <input id="import-clear-existing" type="checkbox" />
+        Clear existing equipment before import
+      </label>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:12px;">
+      <button id="run-import-btn" class="blue-green">Import</button>
+    </div>
+
+    <div id="import-status" style="margin-top:12px; font-size:12px; opacity:.9;"></div>
+  `;
+
+  const status = document.getElementById('import-status');
+
+  document.getElementById('download-import-template-btn')?.addEventListener('click', () => {
+    giriDownloadTextFile('giri_equipment_import_template.csv', giriGetEquipmentImportTemplateCSV(), 'text/csv');
+  });
+
+  document.getElementById('run-import-btn')?.addEventListener('click', () => {
+    const fileInput = document.getElementById('import-csv-file');
+    const clearExisting = document.getElementById('import-clear-existing')?.checked;
+
+    if (!fileInput?.files?.length) {
+      if (status) status.textContent = 'Select a CSV file first.';
+      return;
+    }
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      try {
+        const text = String(reader.result || '');
+        const parsed = giriParseCSV(text);
+
+        if (!parsed.rows.length) {
+          if (status) status.textContent = 'No data rows found in CSV.';
+          return;
+        }
+
+        const result = giriApplyImportedEquipmentRows(parsed.rows, { clearExisting: !!clearExisting });
+
+        if (status) {
+          if (result.errors.length) {
+            status.innerHTML = `
+              Imported <b>${result.added}</b> row(s). <b>${result.errors.length}</b> row(s) skipped.<br/>
+              <span style="opacity:.85;">First issue: ${result.errors[0]}</span>
+            `;
+          } else {
+            status.innerHTML = `Imported <b>${result.added}</b> row(s).`;
+          }
+        }
+      } catch (e) {
+        console.error('Import failed:', e);
+        if (status) status.textContent = 'Import failed (see console).';
+      }
+    };
+
+    reader.onerror = () => {
+      if (status) status.textContent = 'Failed to read the file.';
+    };
+
+    reader.readAsText(file);
+  });
+}
+
+// Minimal CSV parser with quoted field support (RFC4180-ish).
+function giriParseCSV(text) {
+  const normalized = (text || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+  if (!normalized) return { headers: [], rows: [] };
+
+  const rows = [];
+  let row = [];
+  let field = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < normalized.length; i++) {
+    const c = normalized[i];
+
+    if (inQuotes) {
+      if (c === '"') {
+        // Escaped quote
+        if (normalized[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += c;
+      }
+      continue;
+    }
+
+    if (c === '"') {
+      inQuotes = true;
+      continue;
+    }
+
+    if (c === ',') {
+      row.push(field);
+      field = '';
+      continue;
+    }
+
+    if (c === '\n') {
+      row.push(field);
+      rows.push(row);
+      row = [];
+      field = '';
+      continue;
+    }
+
+    field += c;
+  }
+
+  // last field
+  row.push(field);
+  rows.push(row);
+
+  const headers = (rows.shift() || []).map(h => String(h || '').trim());
+  const dataRows = rows
+    .filter(r => r.some(v => String(v || '').trim() !== ''))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h, idx) => { if (h) obj[h] = (r[idx] ?? '').toString().trim(); });
+      return obj;
+    });
+
+  return { headers, rows: dataRows };
+}
+
+function giriApplyImportedEquipmentRows(rows, opts) {
+  const errors = [];
+  let added = 0;
+
+  if (opts?.clearExisting) {
+    workingCSV.length = 0;
+    // Best effort: clear marker layers / state if your existing code tracks them.
+    try {
+      if (typeof emitterMarkers !== 'undefined' && emitterMarkers?.clearLayers) emitterMarkers.clearLayers();
+    } catch (_) {}
+  }
+
+  rows.forEach((r, idx) => {
+    const rowNum = idx + 2; // +1 header, 1-based
+    const systemType = (r.systemType || r.type || '').trim();
+    const systemName = (r.systemName || r.system || '').trim();
+
+    let location = (r.location || '').trim();
+    const lat = (r.lat || r.latitude || '').toString().trim();
+    const lon = (r.lon || r.longitude || '').toString().trim();
+
+    if (!location && lat && lon) location = `${lat},${lon}`;
+
+    if (!systemType) { errors.push(`Row ${rowNum}: missing systemType`); return; }
+    if (!systemName) { errors.push(`Row ${rowNum}: missing systemName`); return; }
+    if (!location) { errors.push(`Row ${rowNum}: missing location (lat,lon)`); return; }
+
+    const parts = location.split(',').map(x => x.trim());
+    if (parts.length !== 2) { errors.push(`Row ${rowNum}: invalid location '${location}'`); return; }
+    const latNum = parseFloat(parts[0]);
+    const lonNum = parseFloat(parts[1]);
+    if (!Number.isFinite(latNum) || !Number.isFinite(lonNum)) { errors.push(`Row ${rowNum}: invalid lat/lon '${location}'`); return; }
+
+    const normalizedLoc = `${latNum.toFixed(6)},${lonNum.toFixed(6)}`;
+
+    const uniqueID = (r.uniqueID || '').trim() || generateUniqueID();
+    const emitterName = (r.emitterName || '').trim() || `${systemName}-${uniqueID}`;
+    const elnot = (r.elnot || '').trim() || generateUniqueID();
+    const freq = (r.freq || '').trim() || Math.floor(Math.random() * 10000).toString();
+    const maj = (r.maj || '').trim() || '1.000';
+    const min = (r.min || '').trim() || '0.500';
+    const ori = (r.ori || '').trim() || '90.000';
+
+    const emitter = {
+      systemType,
+      systemName,
+      emitterName,
+      elnot,
+      freq,
+      maj,
+      min,
+      ori,
+      location: normalizedLoc,
+      uniqueID,
+      mgrs: convertLocationToMGRS(normalizedLoc)
+    };
+
+    workingCSV.push(emitter);
+    if (typeof emitterStates !== 'undefined') emitterStates[uniqueID] = 'Active';
+    added++;
+  });
+
+  // Refresh UI/map the same way other add flows do.
+  try { if (typeof updateCSVPreview === 'function') updateCSVPreview(); } catch (_) {}
+  try { if (typeof plotEmitters === 'function') plotEmitters(); } catch (_) {}
+
+  return { added, errors };
+}
+
+
+function giriDownloadTextFile(filename, text, mimeType = 'text/plain') {
+    try {
+        const blob = new Blob([text], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) {
+        console.error('Download failed:', e);
+        alert('Download failed (see console).');
+    }
+}
+
+// Lightweight CSV parsing with quoted-field support.
+function giriParseCSV(text) {
+    const rows = [];
+    const lines = String(text || '')
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .filter(l => l.trim().length > 0);
+
+    if (lines.length === 0) return rows;
+
+    const headers = giriParseCSVLine(lines[0]).map(h => h.trim());
+    for (let i = 1; i < lines.length; i++) {
+        const cols = giriParseCSVLine(lines[i]);
+        // Skip fully blank lines
+        if (cols.every(c => String(c).trim() === '')) continue;
+
+        const obj = {};
+        headers.forEach((h, idx) => { obj[h] = (cols[idx] ?? '').trim(); });
+        rows.push(obj);
+    }
+    return { headers, rows };
+}
+
+function giriParseCSVLine(line) {
+    const out = [];
+    let cur = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+
+        if (ch === '"') {
+            // Escaped quote
+            if (inQuotes && line[i + 1] === '"') {
+                cur += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+            continue;
+        }
+
+        if (ch === ',' && !inQuotes) {
+            out.push(cur);
+            cur = '';
+            continue;
+        }
+
+        cur += ch;
+    }
+    out.push(cur);
+    return out;
+}
+
+function giriNormalizeImportedEmitter(row) {
+    // Required fields
+    const systemType = (row.systemType || row.type || '').trim();
+    const systemName = (row.systemName || row.system || '').trim();
+
+    // Location: allow either a single "lat,lon" field or separate lat/lon columns.
+    let location = (row.location || '').trim();
+    if (!location && (row.lat || row.lon)) {
+        const lat = String(row.lat || '').trim();
+        const lon = String(row.lon || '').trim();
+        if (lat && lon) location = `${lat},${lon}`;
+    }
+
+    if (!systemType || !systemName || !location) {
+        return { error: 'Missing required field(s): systemType, systemName, location (or lat+lon).' };
+    }
+
+    // Parse location to ensure it is valid
+    const parts = location.split(',').map(s => s.trim());
+    if (parts.length !== 2) return { error: `Invalid location format: "${location}" (expected "lat,lon")` };
+
+    const lat = Number(parts[0]);
+    const lon = Number(parts[1]);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { error: `Invalid numeric lat/lon in "${location}"` };
+
+    const fixedLocation = `${lat.toFixed(6)},${lon.toFixed(6)}`;
+
+    // Optional fields with sensible defaults
+    const uniqueID = (row.uniqueID || row.id || '').trim() || generateUniqueID();
+    const emitterName = (row.emitterName || row.name || '').trim() || `${systemName}-${generateUniqueID()}`;
+    const elnot = (row.elnot || row.elnt || '').trim() || generateUniqueID();
+    const freq = (row.freq || row.frequency || '').trim() || Math.floor(Math.random() * 10000).toString();
+    const maj = (row.maj || '').trim() || '1.000';
+    const min = (row.min || '').trim() || '0.500';
+    const ori = (row.ori || row.orient || '').trim() || '90.000';
+
+    const emitter = {
+        systemType,
+        systemName,
+        emitterName,
+        elnot,
+        freq,
+        maj,
+        min,
+        ori,
+        location: fixedLocation,
+        uniqueID,
+        mgrs: convertLocationToMGRS(fixedLocation)
+    };
+
+    return { emitter };
+}
+
+function giriClearAllEquipment() {
+    try { handlePauseData(); } catch (_) {}
+    // Clear any per-emitter intervals & states safely
+    try {
+        Object.values(playIntervals || {}).forEach(iv => { try { clearInterval(iv); } catch (_) {} });
+        playIntervals = {};
+    } catch (_) {}
+
+    workingCSV = [];
+    emitterStates = {};
+    emitterMovement = {};
+    movementTracks = {};
+    breadcrumbSettings = {};
+    pendingTracePath = null;
+    pendingTraceLayer = null;
+
+    try { clearMapMarkers(); } catch (_) {}
+    try { updateCSVPreview(); } catch (_) {}
+    try { plotEmitters(); } catch (_) {}
+}
+
+function giriImportEquipmentFromCSVText(csvText, options = {}) {
+    const { clearExisting = false } = options || {};
+    const parsed = giriParseCSV(csvText);
+    const rows = parsed.rows || [];
+
+    if (!rows.length) {
+        return { ok: false, message: 'No data rows found in CSV.' };
+    }
+
+    if (clearExisting) {
+        giriClearAllEquipment();
+    }
+
+    const errors = [];
+    let added = 0;
+
+    rows.forEach((row, idx) => {
+        const norm = giriNormalizeImportedEmitter(row);
+        if (norm.error) {
+            errors.push(`Row ${idx + 2}: ${norm.error}`);
+            return;
+        }
+
+        const emitter = norm.emitter;
+
+        workingCSV.push(emitter);
+        emitterStates[emitter.uniqueID] = 'Active';
+        added++;
+    });
+
+    updateCSVPreview();
+    plotEmitters();
+
+    return {
+        ok: errors.length === 0,
+        added,
+        errors
+    };
+}
+// ===============================
+// End bulk equipment CSV import helpers
+// ===============================
+
+
 function updateLocationBox(newLocation, index) {
     const locationInput = document.querySelector(`#working-csv-preview tr:nth-child(${index + 2}) input.location-input`);
     if (locationInput) {
@@ -801,6 +1229,7 @@ document.addEventListener('DOMContentLoaded', function() {
 	  if (mode === 'equipment') renderEquipmentPanel();
 	  if (mode === 'group') renderGroupPanel();
 	  if (mode === 'movement') renderMovementPanel();
+  if (mode === 'upload') renderUploadPanel();
 	}
 
 	equipmentIcon?.addEventListener('click', () => {
@@ -809,11 +1238,17 @@ document.addEventListener('DOMContentLoaded', function() {
 	});
 
 	groupIcon?.addEventListener('click', () => {
-	  console.log('Group icon clicked');
-	  openMode('group');
-	});
-	
-	movementTrackIcon = document.getElementById('movement-track-icon');
+  console.log('Group icon clicked');
+  openMode('group');
+});
+
+movementUploadIcon = document.getElementById('movement-upload-icon');
+movementUploadIcon?.addEventListener('click', () => {
+  console.log('Upload icon clicked');
+  openMode('upload');
+});
+
+movementTrackIcon = document.getElementById('movement-track-icon');
 	movementTrackIcon?.addEventListener('click', () => {
 	  console.log('Movement Track icon clicked');
 	  openMode('movement');
@@ -1713,7 +2148,6 @@ document.addEventListener('DOMContentLoaded', function() {
 	  console.error('Toggle button or preview container not found.', { toggleButton, previewContainer });
 	}
 });
-
 
 
 
